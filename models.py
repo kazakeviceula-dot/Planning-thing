@@ -34,7 +34,7 @@ class StudyManager:
         for i in range(start_idx, end_idx):
             self.days_dict[date_str][i] = 1 # Mark Occupied
 
-def distribute_study(self):
+    def distribute_study(self):
         # Sort tests by urgency (earliest due date first)
         sorted_tests = sorted(self.all_tests, key=lambda t: t.due_date)
         
