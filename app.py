@@ -47,10 +47,18 @@ class IBPlannerApp:
         self.entry_topics = ttk.Entry(form, width=30)
         self.entry_topics.grid(row=2, column=1, pady=5)
 
+       # Difficulty slider row with dynamic label
         ttk.Label(form, text="Difficulty Weight (1-10):").grid(row=3, column=0, sticky="w", pady=5)
-        self.scale_diff = ttk.Scale(form, from_=1, to=10, orient="horizontal")
+        
+        slider_frame = ttk.Frame(form)
+        slider_frame.grid(row=3, column=1, sticky="ew", pady=5)
+
+        self.scale_diff = ttk.Scale(slider_frame, from_=1, to=10, orient="horizontal", command=self.update_diff_label)
         self.scale_diff.set(5)
-        self.scale_diff.grid(row=3, column=1, sticky="ew", pady=5)
+        self.scale_diff.pack(side="left", fill="x", expand=True, padx=(0, 10))
+
+        self.lbl_diff_val = ttk.Label(slider_frame, text="5", font=("Segoe UI", 9, "bold"), width=3)
+        self.lbl_diff_val.pack(side="right")
 
         ttk.Button(self.tab_tests, text="Add Test", command=self.save_test_input).pack(pady=10)
 
