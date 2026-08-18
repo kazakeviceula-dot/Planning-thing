@@ -9,11 +9,9 @@ class IBPlannerApp:
         self.root.geometry("950x650")
         self.manager = StudyManager()
 
-        # Create Tab Notebook
         self.notebook = ttk.Notebook(self.root)
         self.notebook.pack(fill="both", expand=True)
 
-        # Tab Frames
         self.tab_dashboard = ttk.Frame(self.notebook)
         self.tab_tests = ttk.Frame(self.notebook)
         self.tab_availability = ttk.Frame(self.notebook)
@@ -22,12 +20,10 @@ class IBPlannerApp:
         self.notebook.add(self.tab_tests, text="Tab 2: Tests and Topics")
         self.notebook.add(self.tab_availability, text="Tab 3: Availability")
 
-        # Build Tab Content
         self.build_test_tab()
         self.build_availability_tab()
         self.build_dashboard_tab()
 
-    # --- TAB 2: TESTS AND TOPICS ---
     def build_test_tab(self):
         ttk.Label(self.tab_tests, text="Add New Exam", font=("Arial", 14, "bold")).pack(pady=10)
 
@@ -48,7 +44,6 @@ class IBPlannerApp:
 
         ttk.Button(self.tab_tests, text="Add Test", command=self.save_test_input).pack(pady=10)
 
-        # List display for added exams
         ttk.Label(self.tab_tests, text="Upcoming Exams", font=("Arial", 12, "bold")).pack(pady=5)
         self.lbl_exams = ttk.Label(self.tab_tests, text="No exams added yet.")
         self.lbl_exams.pack()
@@ -67,18 +62,15 @@ class IBPlannerApp:
             self.manager.add_test(new_test)
             messagebox.showinfo("Success", f"Added {sub} exam!")
             
-            # Clear inputs
             self.entry_subject.delete(0, tk.END)
             self.entry_date.delete(0, tk.END)
             self.entry_topics.delete(0, tk.END)
             
-            # Update exam list label
             exam_text = "\n".join([f"• {t.subject} (Due: {t.due_date})" for t in self.manager.all_tests])
             self.lbl_exams.config(text=exam_text)
         except ValueError:
             messagebox.showerror("Format Error", "Use YYYY-MM-DD for the date.")
 
-    # --- TAB 3: AVAILABILITY MANAGER ---
     def build_availability_tab(self):
         ttk.Label(self.tab_availability, text="Block Non-Academic Time", font=("Arial", 14, "bold")).pack(pady=10)
 
@@ -109,7 +101,6 @@ class IBPlannerApp:
         except ValueError:
             messagebox.showerror("Error", "Enter valid integers for start and end hours.")
 
-    # --- TAB 1: DASHBOARD & CALENDAR GRID ---
     def build_dashboard_tab(self):
         ttk.Label(self.tab_dashboard, text="Study Plan Dashboard", font=("Arial", 14, "bold")).pack(pady=10)
         
@@ -118,39 +109,31 @@ class IBPlannerApp:
         
         ttk.Button(btn_frame, text="Generate Schedule", command=self.generate_and_refresh).pack(side="left", padx=5)
 
-        # Legend
         legend = ttk.Label(self.tab_dashboard, text="Legend: White = Available (0) | Red = Occupied (1) | Green = Allocated Study (2)")
         legend.pack(pady=5)
 
-        # Calendar Display Area
         self.frame_calendar = ttk.Frame(self.tab_dashboard)
         self.frame_calendar.pack(fill="both", expand=True, padx=20, pady=10)
 
     def generate_and_refresh(self):
-        # Run allocation algorithm
         self.manager.distribute_study()
         
-        # Clear existing grid
         for widget in self.frame_calendar.winfo_children():
             widget.destroy()
 
-        # Build dynamic grid table
         dates = list(self.manager.days_dict.keys())
         if not dates:
             ttk.Label(self.frame_calendar, text="No dates or activities setup yet.").pack()
             return
 
-        # Headers (Hours 07:00 to 22:00)
         ttk.Label(self.frame_calendar, text="Date / Hour", font=("Arial", 9, "bold")).grid(row=0, column=0, padx=2, pady=2)
         for h in range(16):
             ttk.Label(self.frame_calendar, text=f"{h+7:02d}:00", font=("Arial", 8)).grid(row=0, column=h+1, padx=2, pady=2)
 
-        # Rows for each registered day
         for r_idx, date_str in enumerate(dates):
             ttk.Label(self.frame_calendar, text=date_str, font=("Arial", 9, "bold")).grid(row=r_idx+1, column=0, padx=2, pady=2)
             slots = self.manager.days_dict[date_str]
             for c_idx, state in enumerate(slots):
-                # State 0 = Available, State 1 = Occupied, State 2 = Allocated
                 color = "white" if state == 0 else "#ff9999" if state == 1 else "#99ff99"
                 lbl = tk.Label(self.frame_calendar, text=str(state), bg=color, width=4, relief="solid", bd=1)
                 lbl.grid(row=r_idx+1, column=c_idx+1, padx=1, pady=1)
