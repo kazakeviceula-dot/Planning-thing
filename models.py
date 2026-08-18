@@ -12,6 +12,7 @@ class Test:
     def days_until(self) -> int:
         return (self.due_date - datetime.now().date()).days
 
+
 class StudyManager:
     def __init__(self):
         self.all_tests = []
@@ -35,6 +36,7 @@ class StudyManager:
             self.days_dict[date_str][i] = 1 # Mark Occupied
 
     def distribute_study(self):
+        """Chronologically allocates study slots prior to exam deadlines."""
         # Sort tests by urgency (earliest due date first)
         sorted_tests = sorted(self.all_tests, key=lambda t: t.due_date)
         
@@ -52,4 +54,4 @@ class StudyManager:
                         needed_slots -= 1
             
             if needed_slots > 0:
-                print(f"Warning: Schedule Overflow for {test.subject}!")
+                print(f"Warning: Schedule Overflow for {test.subject}!"
