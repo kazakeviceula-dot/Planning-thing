@@ -72,7 +72,11 @@ class IBPlannerApp:
         btn_frame = ttk.Frame(self.tab_tests)
         btn_frame.pack(pady=5)
         ttk.Button(btn_frame, text="Delete Selected Test", command=self.delete_selected_test).pack(side="left", padx=5)
-
+    
+    def update_diff_label(self, val):
+        # Converts floating-point slider value to integer display
+        self.lbl_diff_val.config(text=str(int(float(val))))
+        
     def save_test_input(self):
         sub = self.entry_subject.get().strip()
         date_str = self.entry_date.get().strip()
@@ -93,6 +97,7 @@ class IBPlannerApp:
             self.entry_date.delete(0, tk.END)
             self.entry_topics.delete(0, tk.END)
             self.scale_diff.set(5)
+            self.lbl_diff_val.config(text="5")
             
             self.refresh_exam_list()
         except ValueError:
