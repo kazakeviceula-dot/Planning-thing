@@ -6,10 +6,10 @@ class IBPlannerApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Ula's IB Workload Manager")
-        self.root.geometry("1000x700")
+        self.root.geometry("1000x750")
         
         self.manager = StudyManager()
-        self.manager.load_from_json() # Load persisted state on startup
+        self.manager.load_from_json()
 
         self.notebook = ttk.Notebook(self.root)
         self.notebook.pack(fill="both", expand=True)
@@ -19,8 +19,8 @@ class IBPlannerApp:
         self.tab_availability = ttk.Frame(self.notebook)
 
         self.notebook.add(self.tab_dashboard, text="Tab 1: Dashboard")
-        self.notebook.add(self.tab_tests, text="Tab 2: Tests and Topics")
-        self.notebook.add(self.tab_availability, text="Tab 3: Availability")
+        self.notebook.add(self.tab_tests, text="Tab 2: Tests & Topic Tracker")
+        self.notebook.add(self.tab_availability, text="Tab 3: Availability Manager")
 
         self.build_test_tab()
         self.build_availability_tab()
@@ -47,9 +47,7 @@ class IBPlannerApp:
         self.entry_topics = ttk.Entry(form, width=30)
         self.entry_topics.grid(row=2, column=1, pady=5)
 
-       # Difficulty slider row with dynamic label
         ttk.Label(form, text="Difficulty Weight (1-10):").grid(row=3, column=0, sticky="w", pady=5)
-        
         slider_frame = ttk.Frame(form)
         slider_frame.grid(row=3, column=1, sticky="ew", pady=5)
 
@@ -66,17 +64,21 @@ class IBPlannerApp:
 
         ttk.Label(self.tab_tests, text="Upcoming Exams Priority List", font=("Segoe UI", 12, "bold")).pack(pady=5)
         
-        self.lst_exams = tk.Listbox(self.tab_tests, width=70, height=8)
+        self.lst_exams = tk.Listbox(self.tab_tests, width=80, height=6)
         self.lst_exams.pack(pady=5)
+        self.lst_exams.bind("<<ListboxSelect>>", self.on_test_select)
 
         btn_frame = ttk.Frame(self.tab_tests)
         btn_frame.pack(pady=5)
         ttk.Button(btn_frame, text="Delete Selected Test", command=self.delete_selected_test).pack(side="left", padx=5)
-    
+
+        # Topic Checklist Area
+        self.frame_topics = ttk.LabelFrame(self.tab_tests, text="Topic Completion Tracker (Select a test above)")
+        self.frame_topics.pack(fill="x", padx=20, pady=10)
+
     def update_diff_label(self, val):
-        # Converts floating-point slider value to integer display
         self.lbl_diff_val.config(text=str(int(float(val))))
-        
+
     def save_test_input(self):
         sub = self.entry_subject.get().strip()
         date_str = self.entry_date.get().strip()
@@ -113,42 +115,100 @@ class IBPlannerApp:
         self.manager.remove_test(idx)
         self.manager.save_to_json()
         self.refresh_exam_list()
+        
+        for w in self.frame_topics.winfo_children():
+            w.destroy()
         messagebox.showinfo("Updated", "Exam removed successfully.")
 
     def refresh_exam_list(self):
         self.lst_exams.delete(0, tk.END)
-        # Sort display by priority (date proximity)
         sorted_tests = sorted(self.manager.all_tests, key=lambda t: t.due_date)
         for t in sorted_tests:
+            completed_cnt = len(t.completed_topics)
+            total_cnt = len(t.topics)
             self.lst_exams.insert(
                 tk.END, 
-                f"{t.subject} | Due: {t.due_date_str} | Required Study: {t.hours_required} hrs | Topics: {len(t.topics)}"
+                f"{t.subject} | Due: {t.due_date_str} | Study Hours: {t.hours_required} hrs | Topics Done: {completed_cnt}/{total_cnt}"
             )
+
+    def on_test_select(self, event):
+        selected = self.lst_exams.curselection()
+        if not selected:
+            return
+        
+        sorted_tests = sorted(self.manager.all_tests, key=lambda t: t.due_date)
+        test = sorted_tests[selected[0]]
+
+        for w in self.frame_topics.winfo_children():
+            w.destroy()
+
+        self.frame_topics.config(text=f"Topic Completion Tracker: {test.subject}")
+
+        for topic in test.topics:
+            var = tk.BooleanVar(value=(topic in test.completed_topics))
+            chk = ttk.Checkbutton(
+                self.frame_topics, 
+                text=topic, 
+                variable=var,
+                command=lambda t=test, top=topic: self.toggle_topic_status(t, top)
+            )
+            chk.pack(anchor="w", padx=10, pady=2)
+
+    def toggle_topic_status(self, test, topic):
+        test.toggle_topic(topic)
+        self.manager.save_to_json()
+        self.refresh_exam_list()
 
     # --- TAB 3: AVAILABILITY ---
     def build_availability_tab(self):
         ttk.Label(self.tab_availability, text="Block Non-Academic Time", font=("Segoe UI", 14, "bold")).pack(pady=10)
 
-        form = ttk.Frame(self.tab_availability)
-        form.pack(pady=10)
+        # Single Date Block Section
+        frame_single = ttk.LabelFrame(self.tab_availability, text="Single Date Time Block")
+        frame_single.pack(fill="x", padx=20, pady=5)
 
-        ttk.Label(form, text="Date (YYYY-MM-DD):").grid(row=0, column=0, sticky="w", pady=5)
-        self.entry_avail_date = ttk.Entry(form, width=25)
-        self.entry_avail_date.grid(row=0, column=1, pady=5)
+        ttk.Label(frame_single, text="Date (YYYY-MM-DD):").grid(row=0, column=0, sticky="w", padx=5, pady=5)
+        self.entry_avail_date = ttk.Entry(frame_single, width=20)
+        self.entry_avail_date.grid(row=0, column=1, padx=5, pady=5)
 
-        ttk.Label(form, text="Start Hour (7-22):").grid(row=1, column=0, sticky="w", pady=5)
-        self.entry_start_h = ttk.Entry(form, width=25)
-        self.entry_start_h.grid(row=1, column=1, pady=5)
+        ttk.Label(frame_single, text="Start Hour (7-22):").grid(row=0, column=2, sticky="w", padx=5, pady=5)
+        self.entry_start_h = ttk.Entry(frame_single, width=10)
+        self.entry_start_h.grid(row=0, column=3, padx=5, pady=5)
 
-        ttk.Label(form, text="End Hour (8-23):").grid(row=2, column=0, sticky="w", pady=5)
-        self.entry_end_h = ttk.Entry(form, width=25)
-        self.entry_end_h.grid(row=2, column=1, pady=5)
+        ttk.Label(frame_single, text="End Hour (8-23):").grid(row=0, column=4, sticky="w", padx=5, pady=5)
+        self.entry_end_h = ttk.Entry(frame_single, width=10)
+        self.entry_end_h.grid(row=0, column=5, padx=5, pady=5)
 
-        btn_box = ttk.Frame(self.tab_availability)
-        btn_box.pack(pady=10)
-        
-        ttk.Button(btn_box, text="Block Time Slot", command=self.save_activity_input).pack(side="left", padx=5)
-        ttk.Button(btn_box, text="Clear Selected Date", command=self.clear_date_input).pack(side="left", padx=5)
+        ttk.Button(frame_single, text="Block Date", command=self.save_activity_input).grid(row=0, column=6, padx=10, pady=5)
+
+        # Recurring Activity Section
+        frame_recur = ttk.LabelFrame(self.tab_availability, text="Recurring Weekly Activity (e.g., Sports, Clubs)")
+        frame_recur.pack(fill="x", padx=20, pady=10)
+
+        ttk.Label(frame_recur, text="Day of Week:").grid(row=0, column=0, sticky="w", padx=5, pady=5)
+        self.combo_dow = ttk.Combobox(
+            frame_recur, 
+            values=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], 
+            state="readonly", 
+            width=15
+        )
+        self.combo_dow.current(0)
+        self.combo_dow.grid(row=0, column=1, padx=5, pady=5)
+
+        ttk.Label(frame_recur, text="Start Hour (7-22):").grid(row=0, column=2, sticky="w", padx=5, pady=5)
+        self.entry_rec_start = ttk.Entry(frame_recur, width=10)
+        self.entry_rec_start.grid(row=0, column=3, padx=5, pady=5)
+
+        ttk.Label(frame_recur, text="End Hour (8-23):").grid(row=0, column=4, sticky="w", padx=5, pady=5)
+        self.entry_rec_end = ttk.Entry(frame_recur, width=10)
+        self.entry_rec_end.grid(row=0, column=5, padx=5, pady=5)
+
+        ttk.Button(frame_recur, text="Block Recurring Day", command=self.save_recurring_input).grid(row=0, column=6, padx=10, pady=5)
+
+        # Clear Date Section
+        frame_clear = ttk.Frame(self.tab_availability)
+        frame_clear.pack(pady=10)
+        ttk.Button(frame_clear, text="Clear Selected Single Date Blocks", command=self.clear_date_input).pack()
 
     def save_activity_input(self):
         d_str = self.entry_avail_date.get().strip()
@@ -161,6 +221,20 @@ class IBPlannerApp:
             self.manager.add_activity(d_str, start_h, end_h)
             self.manager.save_to_json()
             messagebox.showinfo("Success", f"Blocked {start_h}:00 - {end_h}:00 on {d_str}")
+        except ValueError:
+            messagebox.showerror("Error", "Enter valid start (7-22) and end (8-23) hours.")
+
+    def save_recurring_input(self):
+        dow = self.combo_dow.get()
+        try:
+            start_h = int(self.entry_rec_start.get())
+            end_h = int(self.entry_rec_end.get())
+            if start_h < 7 or end_h > 23 or start_h >= end_h:
+                raise ValueError()
+
+            self.manager.add_recurring_activity(dow, start_h, end_h)
+            self.manager.save_to_json()
+            messagebox.showinfo("Success", f"Blocked every {dow} {start_h}:00 - {end_h}:00 for 4 weeks!")
         except ValueError:
             messagebox.showerror("Error", "Enter valid start (7-22) and end (8-23) hours.")
 
@@ -184,11 +258,10 @@ class IBPlannerApp:
 
         legend = ttk.Label(
             self.tab_dashboard, 
-            text="Legend: White (0) = Free Time | Red (1) = Blocked Activity | Green (2) = Allocated Study Session"
+            text="Legend: White = Free Time | Red = Blocked Activity | Green = Subject Study Slot"
         )
         legend.pack(pady=5)
 
-        # Scrollable Frame Canvas for Dynamic Matrix Scaling
         self.canvas = tk.Canvas(self.tab_dashboard)
         self.scrollbar = ttk.Scrollbar(self.tab_dashboard, orient="vertical", command=self.canvas.yview)
         self.frame_calendar = ttk.Frame(self.canvas)
@@ -205,7 +278,6 @@ class IBPlannerApp:
         self.scrollbar.pack(side="right", fill="y")
 
     def generate_and_refresh(self):
-        # Execute allocation algorithm and collect overflow warnings
         warnings = self.manager.distribute_study()
         self.manager.save_to_json()
 
@@ -220,18 +292,33 @@ class IBPlannerApp:
             ttk.Label(self.frame_calendar, text="No dates or availability set up yet.").pack()
             return
 
-        # Render 16-slot time header (07:00 to 22:00)
         ttk.Label(self.frame_calendar, text="Date / Hour", font=("Segoe UI", 9, "bold")).grid(row=0, column=0, padx=4, pady=4)
         for h in range(16):
             ttk.Label(self.frame_calendar, text=f"{h+7:02d}:00", font=("Segoe UI", 8)).grid(row=0, column=h+1, padx=2, pady=2)
 
-        # Dynamic Grid Drawing
         for r_idx, date_str in enumerate(dates):
             ttk.Label(self.frame_calendar, text=date_str, font=("Segoe UI", 9, "bold")).grid(row=r_idx+1, column=0, padx=4, pady=4)
             slots = self.manager.days_dict[date_str]
             for c_idx, state in enumerate(slots):
-                color = "white" if state == 0 else "#ff9999" if state == 1 else "#99ff99"
-                lbl = tk.Label(self.frame_calendar, text=str(state), bg=color, width=4, relief="solid", bd=1)
+                if state == 0:
+                    color = "white"
+                    display_text = "Free"
+                elif state == 1:
+                    color = "#ff9999"
+                    display_text = "Blocked"
+                else:
+                    color = "#99ff99"
+                    display_text = str(state)[:6]  # Displays subject name snippet
+
+                lbl = tk.Label(
+                    self.frame_calendar, 
+                    text=display_text, 
+                    bg=color, 
+                    width=7, 
+                    font=("Segoe UI", 8), 
+                    relief="solid", 
+                    bd=1
+                )
                 lbl.grid(row=r_idx+1, column=c_idx+1, padx=1, pady=1)
 
 if __name__ == "__main__":
