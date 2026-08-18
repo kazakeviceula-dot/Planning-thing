@@ -58,6 +58,24 @@ class StudyManager:
         end_idx = min(16, end_hour - 7)
         for i in range(start_idx, end_idx):
             self.days_dict[date_str][i] = 1
+            
+    def add_recurring_activity(self, day_of_week: str, start_hour: int, end_hour: int, weeks_ahead: int = 4):
+        """Blocks time slots for a specific day of the week across future weeks."""
+        days_map = {"Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6}
+        target_weekday = days_map.get(day_of_week)
+        if target_weekday is None:
+            return
+
+        today = datetime.now().date()
+        # Find next occurrence of the target day
+        days_ahead = (target_weekday - today.weekday()) % 7
+        first_date = today + timedelta(days=days_ahead)
+
+        for week in range(weeks_ahead):
+            current_date = first_date + timedelta(weeks=week)
+            date_str = current_date.strftime("%Y-%m-%d")
+            self.add_activity(date_str, start_hour, end_hour)
+
 
     def clear_day_activities(self, date_str: str):
         if date_str in self.days_dict:
