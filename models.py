@@ -139,3 +139,4 @@ class StudyManager:
                 data = json.load(f)
                 self.all_tests = [Test.from_dict(t) for t in data.get("all_tests", [])]
                 self.days_dict = data.get("days_dict", {})
+        self.ensure_date_range_for_tests()
