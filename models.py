@@ -1,16 +1,27 @@
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class Test:
-    def __init__(self, subject: str, due_date: str, topics: list, difficulty_weight: int = 5):
+    def __init__(self, subject: str, due_date: str, topics: list, difficulty_weight: int = 5, completed_topics: list = None):
         self.subject = subject
         self.due_date_str = due_date
         self.due_date = datetime.strptime(due_date, "%Y-%m-%d").date()
         self.topics = topics
+        self.completed_topics = completed_topics if completed_topics is not None else []
         self.difficulty_weight = int(difficulty_weight)
-        # Calculates required study slots based on topic count & difficulty
-        self.hours_required = len(topics) * max(1, self.difficulty_weight // 3)
+        self.update_hours_required()
+
+    def update_hours_required(self):
+        remaining_topics = [t for t in self.topics if t not in self.completed_topics]
+        self.hours_required = len(remaining_topics) * max(1, self.difficulty_weight // 3)
+
+    def toggle_topic(self, topic: str):
+        if topic in self.completed_topics:
+            self.completed_topics.remove(topic)
+        else:
+            self.completed_topics.append(topic)
+        self.update_hours_required()
 
     def days_until(self) -> int:
         return (self.due_date - datetime.now().date()).days
@@ -20,6 +31,7 @@ class Test:
             "subject": self.subject,
             "due_date": self.due_date_str,
             "topics": self.topics,
+            "completed_topics": self.completed_topics,
             "difficulty_weight": self.difficulty_weight
         }
 
@@ -29,15 +41,15 @@ class Test:
             data["subject"],
             data["due_date"],
             data["topics"],
-            data.get("difficulty_weight", 5)
+            data.get("difficulty_weight", 5),
+            data.get("completed_topics", [])
         )
 
 
 class StudyManager:
     def __init__(self):
         self.all_tests = []
-        # days_dict structure: {"YYYY-MM-DD": [16 integer slots representing 07:00-23:00]}
-        # 0 = Available, 1 = Occupied (Activity/Sleep hard limit), 2 = Allocated Study
+        # days_dict: {"YYYY-MM-DD": [16 slots]} -> 0 = Available, 1 = Occupied, String = Subject
         self.days_dict = {}
 
     def add_test(self, test_obj: Test):
@@ -51,23 +63,27 @@ class StudyManager:
         if date_str not in self.days_dict:
             self.days_dict[date_str] = [0] * 16
 
+    def generate_date_range(self, days_ahead: int = 14):
+        """Pre-populates empty 16-slot grids for upcoming days."""
+        today = datetime.now().date()
+        for i in range(days_ahead):
+            d_str = (today + timedelta(days=i)).strftime("%Y-%m-%d")
+            self.init_day(d_str)
+
     def add_activity(self, date_str: str, start_hour: int, end_hour: int):
         self.init_day(date_str)
-        # Hard limits constraint checking: 07:00 to 23:00 (16 slots total)
         start_idx = max(0, start_hour - 7)
         end_idx = min(16, end_hour - 7)
         for i in range(start_idx, end_idx):
             self.days_dict[date_str][i] = 1
-            
+
     def add_recurring_activity(self, day_of_week: str, start_hour: int, end_hour: int, weeks_ahead: int = 4):
-        """Blocks time slots for a specific day of the week across future weeks."""
         days_map = {"Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6}
         target_weekday = days_map.get(day_of_week)
         if target_weekday is None:
             return
 
         today = datetime.now().date()
-        # Find next occurrence of the target day
         days_ahead = (target_weekday - today.weekday()) % 7
         first_date = today + timedelta(days=days_ahead)
 
@@ -76,39 +92,30 @@ class StudyManager:
             date_str = current_date.strftime("%Y-%m-%d")
             self.add_activity(date_str, start_hour, end_hour)
 
-
     def clear_day_activities(self, date_str: str):
         if date_str in self.days_dict:
             self.days_dict[date_str] = [0] * 16
 
     def distribute_study(self) -> list:
-        """
-        Chronological sorting and study allocation engine.
-        Returns a list of warning messages for any overflowing tests.
-        """
-        # Reset all allocated study slots (2) back to available (0) before running
+        # Properly clears both integer flags and string allocations back to 0
         for d_str in self.days_dict:
-            self.days_dict[d_str] = [0 if slot == 2 else slot for slot in self.days_dict[d_str]]
+            self.days_dict[d_str] = [0 if slot not in (0, 1) else slot for slot in self.days_dict[d_str]]
 
-        # Sort tests chronologically by due date (Urgency Priority Queue)
         sorted_tests = sorted(self.all_tests, key=lambda t: t.due_date)
         overflow_warnings = []
 
         for test in sorted_tests:
             needed_slots = test.hours_required
             
-            # Linear search through available calendar days
             for date_str in sorted(self.days_dict.keys()):
                 slot_date = datetime.strptime(date_str, "%Y-%m-%d").date()
-                
-                # Do not allocate study time on or after the test date
                 if slot_date >= test.due_date:
                     continue
                 
                 slots = self.days_dict[date_str]
                 for idx in range(len(slots)):
                     if slots[idx] == 0 and needed_slots > 0:
-                        slots[idx] = 2
+                        slots[idx] = test.subject
                         needed_slots -= 1
 
             if needed_slots > 0:
