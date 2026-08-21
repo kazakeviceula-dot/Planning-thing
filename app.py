@@ -10,7 +10,7 @@ class IBPlannerApp:
         
         self.manager = StudyManager()
         self.manager.load_from_json()
-        self.manager.generate_date_range(14)  # Pre-loads 2 weeks into calendar
+        self.manager.ensure_date_range_for_tests(min_days=14)
 
         self.notebook = ttk.Notebook(self.root)
         self.notebook.pack(fill="both", expand=True)
