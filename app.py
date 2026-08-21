@@ -210,16 +210,21 @@ class IBPlannerApp:
     def save_activity_input(self):
         d_str = self.entry_avail_date.get().strip()
         try:
+            # Validate that the date actually exists on the calendar
+            datetime.strptime(d_str, "%Y-%m-%d")
+        
             start_h = int(self.entry_start_h.get())
             end_h = int(self.entry_end_h.get())
+        
+            # Conflict prevention check
             if start_h < 7 or end_h > 23 or start_h >= end_h:
                 raise ValueError()
-                
+            
             self.manager.add_activity(d_str, start_h, end_h)
             self.manager.save_to_json()
             messagebox.showinfo("Success", f"Blocked {start_h}:00 - {end_h}:00 on {d_str}")
         except ValueError:
-            messagebox.showerror("Error", "Enter valid start (7-22) and end (8-23) hours.")
+            messagebox.showerror("Input Error", "Please provide a valid date (YYYY-MM-DD) and operating hours (7-23).")
 
     def save_recurring_input(self):
         dow = self.combo_dow.get()
