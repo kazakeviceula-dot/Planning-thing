@@ -285,7 +285,7 @@ class IBPlannerApp:
 
         if warnings:
             messagebox.showwarning("Schedule Overflow Alert", "\n".join(warnings))
-
+        # Clear existing grid elements
         for widget in self.frame_calendar.winfo_children():
             widget.destroy()
 
@@ -293,11 +293,11 @@ class IBPlannerApp:
         if not dates:
             ttk.Label(self.frame_calendar, text="No dates or availability set up yet.").pack()
             return
-
+        # Render Header
         ttk.Label(self.frame_calendar, text="Date / Hour", font=("Segoe UI", 9, "bold")).grid(row=0, column=0, padx=4, pady=4)
         for h in range(16):
             ttk.Label(self.frame_calendar, text=f"{h+7:02d}:00", font=("Segoe UI", 8)).grid(row=0, column=h+1, padx=2, pady=2)
-
+        # Render Date Rows
         for r_idx, date_str in enumerate(dates):
             ttk.Label(self.frame_calendar, text=date_str, font=("Segoe UI", 9, "bold")).grid(row=r_idx+1, column=0, padx=4, pady=4)
             slots = self.manager.days_dict[date_str]
@@ -322,6 +322,9 @@ class IBPlannerApp:
                     bd=1
                 )
                 lbl.grid(row=r_idx+1, column=c_idx+1, padx=1, pady=1)
+                # DYNAMIC SCROLLING FIX: Force Tkinter to recalculate height and update scrollable canvas region
+        self.frame_calendar.update_idletasks()
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
 if __name__ == "__main__":
     root = tk.Tk()
