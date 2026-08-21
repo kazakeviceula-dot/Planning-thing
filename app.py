@@ -10,6 +10,7 @@ class IBPlannerApp:
         
         self.manager = StudyManager()
         self.manager.load_from_json()
+        self.manager.generate_date_range(14)  # Pre-loads 2 weeks into calendar
 
         self.notebook = ttk.Notebook(self.root)
         self.notebook.pack(fill="both", expand=True)
@@ -72,7 +73,6 @@ class IBPlannerApp:
         btn_frame.pack(pady=5)
         ttk.Button(btn_frame, text="Delete Selected Test", command=self.delete_selected_test).pack(side="left", padx=5)
 
-        # Topic Checklist Area
         self.frame_topics = ttk.LabelFrame(self.tab_tests, text="Topic Completion Tracker (Select a test above)")
         self.frame_topics.pack(fill="x", padx=20, pady=10)
 
@@ -163,7 +163,6 @@ class IBPlannerApp:
     def build_availability_tab(self):
         ttk.Label(self.tab_availability, text="Block Non-Academic Time", font=("Segoe UI", 14, "bold")).pack(pady=10)
 
-        # Single Date Block Section
         frame_single = ttk.LabelFrame(self.tab_availability, text="Single Date Time Block")
         frame_single.pack(fill="x", padx=20, pady=5)
 
@@ -181,7 +180,6 @@ class IBPlannerApp:
 
         ttk.Button(frame_single, text="Block Date", command=self.save_activity_input).grid(row=0, column=6, padx=10, pady=5)
 
-        # Recurring Activity Section
         frame_recur = ttk.LabelFrame(self.tab_availability, text="Recurring Weekly Activity (e.g., Sports, Clubs)")
         frame_recur.pack(fill="x", padx=20, pady=10)
 
@@ -205,7 +203,6 @@ class IBPlannerApp:
 
         ttk.Button(frame_recur, text="Block Recurring Day", command=self.save_recurring_input).grid(row=0, column=6, padx=10, pady=5)
 
-        # Clear Date Section
         frame_clear = ttk.Frame(self.tab_availability)
         frame_clear.pack(pady=10)
         ttk.Button(frame_clear, text="Clear Selected Single Date Blocks", command=self.clear_date_input).pack()
@@ -308,7 +305,7 @@ class IBPlannerApp:
                     display_text = "Blocked"
                 else:
                     color = "#99ff99"
-                    display_text = str(state)[:6]  # Displays subject name snippet
+                    display_text = str(state)[:6]
 
                 lbl = tk.Label(
                     self.frame_calendar, 
