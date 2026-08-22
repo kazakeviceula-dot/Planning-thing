@@ -18,7 +18,7 @@ class IBPlannerApp:
 
         self.root.configure(bg=self.BG_MAIN)
 
-        # Fonts - using Grozan directly for titles, fallback handled natively by tk
+        # Typography
         self.font_title = ("Grozan", 20)
         self.font_header = ("Georgia", 12, "bold")
         self.font_body = ("Georgia", 10)
