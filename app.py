@@ -15,7 +15,7 @@ except Exception:
     except Exception:
         pass
 
-# Load Grozan for Titles
+# Register Grozan Font
 for font_file in ["grozan-demo/Grozan-Demo-Regular.ttf", "Grozan-Demo-Regular.ttf"]:
     if os.path.exists(font_file):
         try:
@@ -38,18 +38,16 @@ class IBPlannerApp:
 
         self.root.configure(bg=self.BG_MAIN)
 
-        # Separate Display Font (Title) from Standard UI Font (Body/Tabs)
+        # Detect Grozan for Titles Only
         available_fonts = tkfont.families()
         grozan_matches = [f for f in available_fonts if "Grozan" in f]
         title_font_name = grozan_matches[0] if grozan_matches else "Georgia"
-        
-        # Clean, crisp standard font for UI text to eliminate pixelation and clipping
-        body_font_name = "Georgia"
 
-        self.font_title = (title_font_name, 28)
-        self.font_header = (body_font_name, 12, "bold")
-        self.font_body = (body_font_name, 10)
-        self.font_bold = (body_font_name, 10, "bold")
+        # Typography Setup
+        self.font_title = (title_font_name, 20)
+        self.font_header = ("Georgia", 12, "bold")
+        self.font_body = ("Georgia", 10)
+        self.font_bold = ("Georgia", 10, "bold")
 
         # Load Study Manager Data
         self.manager = StudyManager()
@@ -60,7 +58,7 @@ class IBPlannerApp:
         
         self.manager.ensure_date_range_for_tests(min_days=14)
 
-        self.setup_styles(body_font_name)
+        self.setup_styles()
 
         # Tab Container
         self.notebook = ttk.Notebook(self.root)
@@ -70,7 +68,6 @@ class IBPlannerApp:
         self.tab_tests = ttk.Frame(self.notebook, style="Card.TFrame")
         self.tab_availability = ttk.Frame(self.notebook, style="Card.TFrame")
 
-        # Spaced out Tab Labels with explicit padding
         self.notebook.add(self.tab_dashboard, text="   Tab 1: Dashboard   ")
         self.notebook.add(self.tab_tests, text="   Tab 2: Tests & Topics   ")
         self.notebook.add(self.tab_availability, text="   Tab 3: Availability   ")
@@ -81,7 +78,7 @@ class IBPlannerApp:
 
         self.refresh_exam_list()
 
-    def setup_styles(self, body_font):
+    def setup_styles(self):
         style = ttk.Style()
         style.theme_use("clam")
 
@@ -90,7 +87,7 @@ class IBPlannerApp:
         style.configure("TNotebook", background=self.BG_MAIN, borderwidth=0)
         style.configure(
             "TNotebook.Tab", 
-            font=(body_font, 11, "bold"), 
+            font=("Georgia", 11, "bold"), 
             padding=[16, 8], 
             background=self.BG_MAIN, 
             foreground=self.COLOR_PRIMARY
@@ -107,7 +104,7 @@ class IBPlannerApp:
 
         style.configure(
             "Primary.TButton", 
-            font=(body_font, 11, "bold"), 
+            font=("Georgia", 11, "bold"), 
             background=self.COLOR_PRIMARY, 
             foreground="white", 
             borderwidth=0, 
@@ -117,7 +114,7 @@ class IBPlannerApp:
 
         style.configure(
             "Accent.TButton", 
-            font=(body_font, 10, "bold"), 
+            font=("Georgia", 10, "bold"), 
             background=self.COLOR_ACCENT, 
             foreground=self.COLOR_PRIMARY, 
             borderwidth=1, 
@@ -130,7 +127,7 @@ class IBPlannerApp:
 
     # --- TAB 2: TESTS AND TOPICS ---
     def build_test_tab(self):
-        ttk.Label(self.tab_tests, text="Add New Assessment", style="Header.TLabel").pack(pady=(20, 10))
+        ttk.Label(self.tab_tests, text="ADD NEW ASSESSMENT", style="Header.TLabel").pack(pady=(20, 10))
 
         form = ttk.Frame(self.tab_tests, style="Card.TFrame")
         form.pack(pady=10, padx=20)
@@ -265,7 +262,7 @@ class IBPlannerApp:
 
     # --- TAB 3: AVAILABILITY ---
     def build_availability_tab(self):
-        ttk.Label(self.tab_availability, text="Block Non-Academic Time", style="Header.TLabel").pack(pady=(20, 10))
+        ttk.Label(self.tab_availability, text="BLOCK NON-ACADEMIC TIME", style="Header.TLabel").pack(pady=(20, 10))
 
         frame_single = ttk.LabelFrame(self.tab_availability, text=" Single Date Time Block ")
         frame_single.pack(fill="x", padx=30, pady=10)
@@ -353,7 +350,7 @@ class IBPlannerApp:
 
     # --- TAB 1: DASHBOARD ---
     def build_dashboard_tab(self):
-        ttk.Label(self.tab_dashboard, text="Study Plan Dashboard", style="Header.TLabel").pack(pady=(20, 10))
+        ttk.Label(self.tab_dashboard, text="STUDY PLAN DASHBOARD", style="Header.TLabel").pack(pady=(20, 10))
 
         btn_frame = ttk.Frame(self.tab_dashboard, style="Card.TFrame")
         btn_frame.pack(pady=10)
