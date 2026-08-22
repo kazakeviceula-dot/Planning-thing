@@ -91,26 +91,24 @@ class StudyManager:
             current_date = first_date + timedelta(weeks=week)
             date_str = current_date.strftime("%Y-%m-%d")
             self.add_activity(date_str, start_hour, end_hour)
-    
+
     def ensure_date_range_for_tests(self, min_days=14):
-    """Ensures the days_dict calendar has enough future dates generated for upcoming exams."""
-    from datetime import datetime, timedelta
-    
-    today = datetime.now().date()
-    max_date = today + timedelta(days=min_days)
+        """Ensures the days_dict calendar has enough future dates generated for upcoming exams."""
+        today = datetime.now().date()
+        max_date = today + timedelta(days=min_days)
 
-    # Extend date range if any test is due further out
-    for test in self.all_tests:
-        if hasattr(test, 'due_date') and test.due_date > max_date:
-            max_date = test.due_date
+        # Extend date range if any test is due further out
+        for test in self.all_tests:
+            if hasattr(test, 'due_date') and test.due_date > max_date:
+                max_date = test.due_date
 
-    curr = today
-    while curr <= max_date:
-        d_str = curr.strftime("%Y-%m-%d")
-        if d_str not in self.days_dict:
-            self.days_dict[d_str] = [0] * 16  # 16 available hourly slots (7 AM - 10 PM)
-        curr += timedelta(days=1)
-    
+        curr = today
+        while curr <= max_date:
+            d_str = curr.strftime("%Y-%m-%d")
+            if d_str not in self.days_dict:
+                self.days_dict[d_str] = [0] * 16  # 16 available hourly slots (7 AM - 10 PM)
+            curr += timedelta(days=1)
+
     def clear_day_activities(self, date_str: str):
         if date_str in self.days_dict:
             self.days_dict[date_str] = [0] * 16
@@ -125,12 +123,12 @@ class StudyManager:
 
         for test in sorted_tests:
             needed_slots = test.hours_required
-            
+
             for date_str in sorted(self.days_dict.keys()):
                 slot_date = datetime.strptime(date_str, "%Y-%m-%d").date()
                 if slot_date >= test.due_date:
                     continue
-                
+
                 slots = self.days_dict[date_str]
                 for idx in range(len(slots)):
                     if slots[idx] == 0 and needed_slots > 0:
