@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+import tkinter.font as tkfont
 from datetime import datetime
 from models import StudyManager, Test
 
@@ -8,6 +9,12 @@ class IBPlannerApp:
         self.root = root
         self.root.title("Ula's IB Workload Manager")
         self.root.geometry("1180x880")
+
+        # Load custom font into Tkinter font registry if present
+        try:
+            self.root.tk.call('font', 'create', 'Grozan', '-family', 'Grozan')
+        except:
+            pass
 
         # Palette
         self.BG_MAIN = "#B5C2FC"       
@@ -28,7 +35,7 @@ class IBPlannerApp:
         try:
             self.manager.load_from_json()
         except:
-            pass # default to empty state if missing file
+            pass
         
         self.manager.ensure_date_range_for_tests(min_days=14)
 
@@ -338,7 +345,6 @@ class IBPlannerApp:
         for h in range(16):
             ttk.Label(self.frame_calendar, text=f"{h+7:02d}:00", font=("Georgia", 9, "bold")).grid(row=0, column=h+1, padx=3, pady=6)
 
-        # todo: refactor color assignment to separate method if grid gets larger
         for r_idx, date_str in enumerate(dates):
             ttk.Label(self.frame_calendar, text=date_str, font=self.font_bold).grid(row=r_idx+1, column=0, padx=6, pady=4)
             slots = self.manager.days_dict[date_str]
