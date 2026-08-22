@@ -6,7 +6,7 @@ from datetime import datetime
 from models import StudyManager, Test
 
 # Load custom font file into Windows memory session
-FONT_PATH = "Grozan-Demo-Regular.ttf"  # <--- Change this to your exact filename
+FONT_PATH = "Grozan-Demo-Regular.ttf"  # <--- Ensure this matches your exact filename
 if os.path.exists(FONT_PATH):
     ctypes.windll.gdi32.AddFontResourceExW(FONT_PATH, 0x10, 0)
 
@@ -25,9 +25,9 @@ class IBPlannerApp:
 
         self.root.configure(bg=self.BG_MAIN)
 
-        # Typography - "Grozan" will now render properly!
-        self.font_title = ("Grozan", 20)
-        self.font_header = ("Georgia", 12, "bold")
+        # Typography with Grozan applied to all main headers and titles
+        self.font_title = ("Grozan", 26, "bold")
+        self.font_header = ("Grozan", 16, "bold")
         self.font_body = ("Georgia", 10)
         self.font_bold = ("Georgia", 10, "bold")
 
@@ -65,7 +65,7 @@ class IBPlannerApp:
         style.configure("Card.TFrame", background=self.BG_CARD)
 
         style.configure("TNotebook", background=self.BG_MAIN, borderwidth=0)
-        style.configure("TNotebook.Tab", font=("Georgia", 11, "bold"), padding=[16, 8], background=self.BG_MAIN, foreground=self.COLOR_PRIMARY)
+        style.configure("TNotebook.Tab", font=("Grozan", 12, "bold"), padding=[16, 8], background=self.BG_MAIN, foreground=self.COLOR_PRIMARY)
         style.map("TNotebook.Tab", background=[("selected", self.BG_CARD)], foreground=[("selected", self.COLOR_PRIMARY)])
 
         style.configure("Header.TLabel", font=self.font_title, background=self.BG_CARD, foreground=self.COLOR_PRIMARY)
@@ -128,7 +128,7 @@ class IBPlannerApp:
 
         ttk.Separator(self.tab_tests, orient="horizontal").pack(fill="x", expand=True, padx=20, pady=15)
 
-        self.frame_topics = ttk.LabelFrame(self.tab_tests, text=" Topic Completion Tracker ")
+        self.frame_topics = ttk.LabelFrame(self.tab_tests, text=" TOPIC COMPLETION TRACKER ")
         self.frame_topics.pack(fill="x", padx=20, pady=10)
 
     def update_diff_label(self, val):
@@ -194,7 +194,7 @@ class IBPlannerApp:
         for w in self.frame_topics.winfo_children():
             w.destroy()
 
-        self.frame_topics.config(text=f" Topic Completion Tracker: {test.subject} ")
+        self.frame_topics.config(text=f" TOPIC COMPLETION TRACKER: {test.subject.upper()} ")
 
         for topic in test.topics:
             var = tk.BooleanVar(value=(topic in test.completed_topics))
@@ -214,7 +214,7 @@ class IBPlannerApp:
     def build_availability_tab(self):
         ttk.Label(self.tab_availability, text="BLOCK NON-ACADEMIC TIME", style="Header.TLabel").pack(pady=(20, 10))
 
-        frame_single = ttk.LabelFrame(self.tab_availability, text=" Single Date Time Block ")
+        frame_single = ttk.LabelFrame(self.tab_availability, text=" SINGLE DATE TIME BLOCK ")
         frame_single.pack(fill="x", padx=30, pady=10)
 
         ttk.Label(frame_single, text="Date (YYYY-MM-DD):").grid(row=0, column=0, sticky="w", padx=8, pady=10)
@@ -231,7 +231,7 @@ class IBPlannerApp:
 
         ttk.Button(frame_single, text="Block Date", style="Primary.TButton", command=self.save_activity_input).grid(row=0, column=6, padx=15, pady=10)
 
-        frame_recur = ttk.LabelFrame(self.tab_availability, text=" Recurring Weekly Activity ")
+        frame_recur = ttk.LabelFrame(self.tab_availability, text=" RECURRING WEEKLY ACTIVITY ")
         frame_recur.pack(fill="x", padx=30, pady=15)
 
         ttk.Label(frame_recur, text="Day of Week:").grid(row=0, column=0, sticky="w", padx=8, pady=10)
@@ -306,7 +306,7 @@ class IBPlannerApp:
         legend_frame = tk.Frame(self.tab_dashboard, bg=self.BG_MAIN)
         legend_frame.pack(pady=10)
 
-        tk.Label(legend_frame, text="Legend: ", font=("Georgia", 11, "bold"), fg=self.COLOR_PRIMARY, bg=self.BG_MAIN).pack(side="left")
+        tk.Label(legend_frame, text="Legend: ", font=("Grozan", 12, "bold"), fg=self.COLOR_PRIMARY, bg=self.BG_MAIN).pack(side="left")
         tk.Label(legend_frame, text=" White = Free ", font=("Georgia", 10, "bold"), bg="#FFFFFF", fg="#000000", bd=1, relief="solid").pack(side="left", padx=5)
         tk.Label(legend_frame, text=" Pink/Coral = Blocked Activity ", font=("Georgia", 10, "bold"), bg="#FF8989", fg="#FFFFFF", bd=1, relief="solid").pack(side="left", padx=5)
         tk.Label(legend_frame, text=" Ocean Blue = Study Slot ", font=("Georgia", 10, "bold"), bg="#0079D2", fg="#FFFFFF", bd=1, relief="solid").pack(side="left", padx=5)
