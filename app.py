@@ -11,24 +11,25 @@ class IBPlannerApp:
         self.root.geometry("1150x850")
 
         # Color Palette Definitions
-        self.BG_MAIN = "#E6F4F1"       # Light Mint
-        self.BG_CARD = "#B5C2FC"       # Soft Periwinkle
+        self.BG_MAIN = "#B5C2FC"       # Soft Periwinkle background
+        self.BG_CARD = "#B5C2FC"       # Matches main background
         self.COLOR_PRIMARY = "#0045B2" # Deep Royal Blue
         self.COLOR_ACCENT = "#FCFCD4"  # Pastel Yellow
         self.COLOR_TEXT = "#000000"
 
         self.root.configure(bg=self.BG_MAIN)
 
-        # Safe Font Checking
+        # Safe Custom Font Detection
         available_fonts = tkfont.families()
-        title_font_name = "Grozan Demo" if "Grozan Demo" in available_fonts else "Georgia"
+        grozan_matches = [f for f in available_fonts if "Grozan" in f]
+        title_font_name = grozan_matches[0] if grozan_matches else "Georgia"
 
         self.font_title = (title_font_name, 22, "bold")
         self.font_header = ("Georgia", 13, "bold")
         self.font_body = ("Georgia", 10)
         self.font_bold = ("Georgia", 10, "bold")
 
-        # Load Study Manager Data safely
+        # Load Study Manager Data
         self.manager = StudyManager()
         try:
             self.manager.load_from_json()
@@ -61,10 +62,8 @@ class IBPlannerApp:
         style = ttk.Style()
         style.theme_use("clam")
 
-        # Frame Styling
         style.configure("Card.TFrame", background=self.BG_CARD)
 
-        # Notebook Tab Styling
         style.configure("TNotebook", background=self.BG_MAIN, borderwidth=0)
         style.configure(
             "TNotebook.Tab", 
@@ -79,12 +78,10 @@ class IBPlannerApp:
             foreground=[("selected", self.COLOR_PRIMARY)]
         )
 
-        # Label Styling
         style.configure("Header.TLabel", font=self.font_title, background=self.BG_CARD, foreground=self.COLOR_PRIMARY)
         style.configure("SubHeader.TLabel", font=self.font_header, background=self.BG_CARD, foreground=self.COLOR_PRIMARY)
         style.configure("TLabel", font=self.font_body, background=self.BG_CARD, foreground=self.COLOR_TEXT)
 
-        # Button Styling
         style.configure(
             "Primary.TButton", 
             font=("Georgia", 11, "bold"), 
@@ -105,7 +102,6 @@ class IBPlannerApp:
         )
         style.map("Accent.TButton", background=[("active", "#eaeaa6")])
 
-        # Form Controls
         style.configure("TLabelframe", background=self.BG_CARD, borderwidth=1, relief="solid")
         style.configure("TLabelframe.Label", font=self.font_header, background=self.BG_CARD, foreground=self.COLOR_PRIMARY)
 
@@ -141,7 +137,8 @@ class IBPlannerApp:
 
         ttk.Button(self.tab_tests, text="Add Test", style="Primary.TButton", command=self.save_test_input).pack(pady=12)
 
-        ttk.Separator(self.tab_tests, orient="horizontal").pack(fill="x", padx=30, pady=15)
+        # Full-width separator
+        ttk.Separator(self.tab_tests, orient="horizontal").pack(fill="x", expand=True, padx=20, pady=15)
 
         ttk.Label(self.tab_tests, text="Upcoming Exams Priority List", style="SubHeader.TLabel").pack(pady=5)
 
@@ -156,8 +153,11 @@ class IBPlannerApp:
         btn_frame.pack(pady=5)
         ttk.Button(btn_frame, text="Delete Selected Test", style="Accent.TButton", command=self.delete_selected_test).pack()
 
+        # Full-width separator
+        ttk.Separator(self.tab_tests, orient="horizontal").pack(fill="x", expand=True, padx=20, pady=15)
+
         self.frame_topics = ttk.LabelFrame(self.tab_tests, text=" Topic Completion Tracker ")
-        self.frame_topics.pack(fill="x", padx=30, pady=15)
+        self.frame_topics.pack(fill="x", padx=20, pady=10)
 
     def update_diff_label(self, val):
         self.lbl_diff_val.config(text=str(int(float(val))))
@@ -339,13 +339,15 @@ class IBPlannerApp:
 
         ttk.Button(btn_frame, text="Generate Schedule", style="Primary.TButton", command=self.generate_and_refresh).pack()
 
-        legend = ttk.Label(
-            self.tab_dashboard,
-            text="Legend:  White = Free  |  Pink/Coral = Blocked Activity  |  Ocean Blue = Study Slot",
-            font=self.font_bold,
-            foreground=self.COLOR_PRIMARY
-        )
-        legend.pack(pady=8)
+        # Colorful Badge Legend Container
+        legend_frame = tk.Frame(self.tab_dashboard, bg=self.BG_MAIN)
+        legend_frame.pack(pady=10)
+
+        tk.Label(legend_frame, text="Legend: ", font=("Georgia", 11, "bold"), fg=self.COLOR_PRIMARY, bg=self.BG_MAIN).pack(side="left")
+        
+        tk.Label(legend_frame, text=" White = Free ", font=("Georgia", 9, "bold"), bg="#FFFFFF", fg="#000000", relief="solid", bd=1).pack(side="left", padx=4)
+        tk.Label(legend_frame, text=" Pink/Coral = Blocked Activity ", font=("Georgia", 9, "bold"), bg="#FF8989", fg="#FFFFFF", relief="solid", bd=1).pack(side="left", padx=4)
+        tk.Label(legend_frame, text=" Ocean Blue = Study Slot ", font=("Georgia", 9, "bold"), bg="#0079D2", fg="#FFFFFF", relief="solid", bd=1).pack(side="left", padx=4)
 
         self.canvas = tk.Canvas(self.tab_dashboard, bg="#FFFFFF", highlightthickness=0)
         self.scrollbar = ttk.Scrollbar(self.tab_dashboard, orient="vertical", command=self.canvas.yview)
@@ -392,11 +394,11 @@ class IBPlannerApp:
                     text_color = "#888888"
                     display_text = "Free"
                 elif state == 1:
-                    color = "#FF8989"  # Gradient Pink/Coral
-                    text_color = "#000000"
+                    color = "#FF8989"  # Pink/Coral
+                    text_color = "#FFFFFF"
                     display_text = "Blocked"
                 else:
-                    color = "#0079D2"  # Gradient Ocean Blue
+                    color = "#0079D2"  # Ocean Blue
                     text_color = "#FFFFFF"
                     display_text = str(state)[:6]
 
