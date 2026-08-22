@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+import tkinter.font as tkfont
 from datetime import datetime
 from models import StudyManager, Test
 
@@ -18,16 +19,23 @@ class IBPlannerApp:
 
         self.root.configure(bg=self.BG_MAIN)
 
-        # Load Study Manager Data
-        self.manager = StudyManager()
-        self.manager.load_from_json()
-        self.manager.ensure_date_range_for_tests(min_days=14)
+        # Safe Font Checking
+        available_fonts = tkfont.families()
+        title_font_name = "Grozan Demo" if "Grozan Demo" in available_fonts else "Georgia"
 
-        # Typography Hierarchy
-        self.font_title = ("Grozan Demo", 22, "bold") if "Grozan Demo" in tk.font.families() else ("Georgia", 22, "bold")
+        self.font_title = (title_font_name, 22, "bold")
         self.font_header = ("Georgia", 13, "bold")
         self.font_body = ("Georgia", 10)
         self.font_bold = ("Georgia", 10, "bold")
+
+        # Load Study Manager Data safely
+        self.manager = StudyManager()
+        try:
+            self.manager.load_from_json()
+        except Exception as e:
+            print(f"Warning: Could not load JSON data ({e}). Initializing empty schedule.")
+        
+        self.manager.ensure_date_range_for_tests(min_days=14)
 
         self.setup_styles()
 
