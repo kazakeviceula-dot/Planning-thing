@@ -49,7 +49,6 @@ class Test:
 class StudyManager:
     def __init__(self):
         self.all_tests = []
-        # days_dict: {"YYYY-MM-DD": [16 slots]} -> 0 = Available, 1 = Occupied, String = Subject
         self.days_dict = {}
 
     def add_test(self, test_obj: Test):
@@ -64,7 +63,6 @@ class StudyManager:
             self.days_dict[date_str] = [0] * 16
 
     def generate_date_range(self, days_ahead: int = 14):
-        """Pre-populates empty 16-slot grids for upcoming days."""
         today = datetime.now().date()
         for i in range(days_ahead):
             d_str = (today + timedelta(days=i)).strftime("%Y-%m-%d")
@@ -93,11 +91,9 @@ class StudyManager:
             self.add_activity(date_str, start_hour, end_hour)
 
     def ensure_date_range_for_tests(self, min_days=14):
-        """Ensures the days_dict calendar has enough future dates generated for upcoming exams."""
         today = datetime.now().date()
         max_date = today + timedelta(days=min_days)
 
-        # Extend date range if any test is due further out
         for test in self.all_tests:
             if hasattr(test, 'due_date') and test.due_date > max_date:
                 max_date = test.due_date
@@ -106,15 +102,14 @@ class StudyManager:
         while curr <= max_date:
             d_str = curr.strftime("%Y-%m-%d")
             if d_str not in self.days_dict:
-                self.days_dict[d_str] = [0] * 16  # 16 available hourly slots (7 AM - 10 PM)
+                self.days_dict[d_str] = [0] * 16
             curr += timedelta(days=1)
-            
+
     def clear_day_activities(self, date_str: str):
         if date_str in self.days_dict:
             self.days_dict[date_str] = [0] * 16
 
     def distribute_study(self) -> list:
-        # Properly clears both integer flags and string allocations back to 0
         for d_str in self.days_dict:
             self.days_dict[d_str] = [0 if slot not in (0, 1) else slot for slot in self.days_dict[d_str]]
 
