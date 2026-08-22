@@ -108,7 +108,7 @@ class StudyManager:
             if d_str not in self.days_dict:
                 self.days_dict[d_str] = [0] * 16  # 16 available hourly slots (7 AM - 10 PM)
             curr += timedelta(days=1)
-
+            
     def clear_day_activities(self, date_str: str):
         if date_str in self.days_dict:
             self.days_dict[date_str] = [0] * 16
