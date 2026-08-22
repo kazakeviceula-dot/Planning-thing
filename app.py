@@ -1,20 +1,20 @@
+import os
+import ctypes
 import tkinter as tk
 from tkinter import ttk, messagebox
-import tkinter.font as tkfont
 from datetime import datetime
 from models import StudyManager, Test
+
+# Load custom font file into Windows memory session
+FONT_PATH = "Grozan-Demo-Regular.ttf"  # <--- Change this to your exact filename
+if os.path.exists(FONT_PATH):
+    ctypes.windll.gdi32.AddFontResourceExW(FONT_PATH, 0x10, 0)
 
 class IBPlannerApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Ula's IB Workload Manager")
         self.root.geometry("1180x880")
-
-        # Load custom font into Tkinter font registry if present
-        try:
-            self.root.tk.call('font', 'create', 'Grozan', '-family', 'Grozan')
-        except:
-            pass
 
         # Palette
         self.BG_MAIN = "#B5C2FC"       
@@ -25,7 +25,7 @@ class IBPlannerApp:
 
         self.root.configure(bg=self.BG_MAIN)
 
-        # Typography
+        # Typography - "Grozan" will now render properly!
         self.font_title = ("Grozan", 20)
         self.font_header = ("Georgia", 12, "bold")
         self.font_body = ("Georgia", 10)
