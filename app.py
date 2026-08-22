@@ -1,8 +1,18 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import tkinter.font as tkfont
+import ctypes
+import os
 from datetime import datetime
 from models import StudyManager, Test
+
+# Dynamically attempt to load custom fonts via Windows API if files exist in directory
+for font_file in ["ForeverDreamingRegular.otf", "ForeverDreamingRegular.ttf", "grozan-demo/Grozan-Demo-Regular.ttf"]:
+    if os.path.exists(font_file):
+        try:
+            ctypes.windll.gdi32.AddFontResourceExW(font_file, 0x10, 0)
+        except Exception:
+            pass
 
 class IBPlannerApp:
     def __init__(self, root):
@@ -12,53 +22,59 @@ class IBPlannerApp:
 
         # Color Palette Definitions
         self.BG_MAIN = "#B5C2FC"       # Soft Periwinkle background
-        self.BG_CARD = "#B5C2FC"       # Matches main background
+        self.BG_CARD = "#B5C2FC"       
         self.COLOR_PRIMARY = "#0045B2" # Deep Royal Blue
         self.COLOR_ACCENT = "#FCFCD4"  # Pastel Yellow
         self.COLOR_TEXT = "#000000"
 
         self.root.configure(bg=self.BG_MAIN)
 
-        # Safe Custom Font Detection
+        # Detect installed/loaded fonts
         available_fonts = tkfont.families()
+        
+        # Check for Grozan Title Font
         grozan_matches = [f for f in available_fonts if "Grozan" in f]
         title_font_name = grozan_matches[0] if grozan_matches else "Georgia"
 
+        # Check for Forever Dreaming Body/UI Font
+        dream_matches = [f for f in available_fonts if "Forever" in f or "Dreaming" in f]
+        body_font_name = dream_matches[0] if dream_matches else "Georgia"
+
         self.font_title = (title_font_name, 22, "bold")
-        self.font_header = ("Georgia", 13, "bold")
-        self.font_body = ("Georgia", 10)
-        self.font_bold = ("Georgia", 10, "bold")
+        self.font_header = (body_font_name, 13, "bold")
+        self.font_body = (body_font_name, 10)
+        self.font_bold = (body_font_name, 10, "bold")
 
         # Load Study Manager Data
         self.manager = StudyManager()
         try:
             self.manager.load_from_json()
         except Exception as e:
-            print(f"Warning: Could not load JSON data ({e}). Initializing empty schedule.")
+            print(f"Initializing schedule... ({e})")
         
         self.manager.ensure_date_range_for_tests(min_days=14)
 
-        self.setup_styles()
+        self.setup_styles(body_font_name)
 
-        # Tab Bar Container
+        # Notebook / Tab Container (Adjusted padding to prevent left side cutting off)
         self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(fill="both", expand=True, padx=20, pady=20)
+        self.notebook.pack(fill="both", expand=True, padx=10, pady=(10, 20))
 
         self.tab_dashboard = ttk.Frame(self.notebook, style="Card.TFrame")
         self.tab_tests = ttk.Frame(self.notebook, style="Card.TFrame")
         self.tab_availability = ttk.Frame(self.notebook, style="Card.TFrame")
 
-        self.notebook.add(self.tab_dashboard, text="   Tab 1: Dashboard   ")
-        self.notebook.add(self.tab_tests, text="   Tab 2: Tests & Topic Tracker   ")
-        self.notebook.add(self.tab_availability, text="   Tab 3: Availability Manager   ")
+        self.notebook.add(self.tab_dashboard, text=" Tab 1: Dashboard ")
+        self.notebook.add(self.tab_tests, text=" Tab 2: Tests & Topic Tracker ")
+        self.notebook.add(self.tab_availability, text=" Tab 3: Availability Manager ")
 
-        self.build_test_tab()
+        self.build_test_tab(body_font_name)
         self.build_availability_tab()
-        self.build_dashboard_tab()
+        self.build_dashboard_tab(body_font_name)
 
         self.refresh_exam_list()
 
-    def setup_styles(self):
+    def setup_styles(self, body_font):
         style = ttk.Style()
         style.theme_use("clam")
 
@@ -67,8 +83,8 @@ class IBPlannerApp:
         style.configure("TNotebook", background=self.BG_MAIN, borderwidth=0)
         style.configure(
             "TNotebook.Tab", 
-            font=("Georgia", 12, "bold"), 
-            padding=[18, 10], 
+            font=(body_font, 11, "bold"), 
+            padding=[12, 6], 
             background=self.BG_MAIN, 
             foreground=self.COLOR_PRIMARY
         )
@@ -84,21 +100,21 @@ class IBPlannerApp:
 
         style.configure(
             "Primary.TButton", 
-            font=("Georgia", 11, "bold"), 
+            font=(body_font, 11, "bold"), 
             background=self.COLOR_PRIMARY, 
             foreground="white", 
             borderwidth=0, 
-            padding=8
+            padding=6
         )
         style.map("Primary.TButton", background=[("active", "#003282")])
 
         style.configure(
             "Accent.TButton", 
-            font=("Georgia", 10, "bold"), 
+            font=(body_font, 10, "bold"), 
             background=self.COLOR_ACCENT, 
             foreground=self.COLOR_PRIMARY, 
             borderwidth=1, 
-            padding=6
+            padding=5
         )
         style.map("Accent.TButton", background=[("active", "#eaeaa6")])
 
@@ -106,27 +122,27 @@ class IBPlannerApp:
         style.configure("TLabelframe.Label", font=self.font_header, background=self.BG_CARD, foreground=self.COLOR_PRIMARY)
 
     # --- TAB 2: TESTS AND TOPICS ---
-    def build_test_tab(self):
-        ttk.Label(self.tab_tests, text="Add New Assessment", style="Header.TLabel").pack(pady=(20, 10))
+    def build_test_tab(self, body_font):
+        ttk.Label(self.tab_tests, text="Add New Assessment", style="Header.TLabel").pack(pady=(15, 5))
 
         form = ttk.Frame(self.tab_tests, style="Card.TFrame")
-        form.pack(pady=10, padx=20)
+        form.pack(pady=5, padx=20)
 
-        ttk.Label(form, text="Subject Name:").grid(row=0, column=0, sticky="w", pady=8, padx=5)
+        ttk.Label(form, text="Subject Name:").grid(row=0, column=0, sticky="w", pady=6, padx=5)
         self.entry_subject = ttk.Entry(form, width=32, font=self.font_body)
-        self.entry_subject.grid(row=0, column=1, pady=8, padx=5)
+        self.entry_subject.grid(row=0, column=1, pady=6, padx=5)
 
-        ttk.Label(form, text="Due Date (YYYY-MM-DD):").grid(row=1, column=0, sticky="w", pady=8, padx=5)
+        ttk.Label(form, text="Due Date (YYYY-MM-DD):").grid(row=1, column=0, sticky="w", pady=6, padx=5)
         self.entry_date = ttk.Entry(form, width=32, font=self.font_body)
-        self.entry_date.grid(row=1, column=1, pady=8, padx=5)
+        self.entry_date.grid(row=1, column=1, pady=6, padx=5)
 
-        ttk.Label(form, text="Topics (comma separated):").grid(row=2, column=0, sticky="w", pady=8, padx=5)
+        ttk.Label(form, text="Topics (comma separated):").grid(row=2, column=0, sticky="w", pady=6, padx=5)
         self.entry_topics = ttk.Entry(form, width=32, font=self.font_body)
-        self.entry_topics.grid(row=2, column=1, pady=8, padx=5)
+        self.entry_topics.grid(row=2, column=1, pady=6, padx=5)
 
-        ttk.Label(form, text="Difficulty Weight (1-10):").grid(row=3, column=0, sticky="w", pady=8, padx=5)
+        ttk.Label(form, text="Difficulty Weight (1-10):").grid(row=3, column=0, sticky="w", pady=6, padx=5)
         slider_frame = ttk.Frame(form, style="Card.TFrame")
-        slider_frame.grid(row=3, column=1, sticky="ew", pady=8, padx=5)
+        slider_frame.grid(row=3, column=1, sticky="ew", pady=6, padx=5)
 
         self.scale_diff = ttk.Scale(slider_frame, from_=1, to=10, orient="horizontal", command=self.update_diff_label)
         self.scale_diff.set(5)
@@ -135,29 +151,27 @@ class IBPlannerApp:
         self.lbl_diff_val = ttk.Label(slider_frame, text="5", font=self.font_bold, width=3)
         self.lbl_diff_val.pack(side="right")
 
-        ttk.Button(self.tab_tests, text="Add Test", style="Primary.TButton", command=self.save_test_input).pack(pady=12)
+        ttk.Button(self.tab_tests, text="Add Test", style="Primary.TButton", command=self.save_test_input).pack(pady=8)
 
-        # Full-width separator
-        ttk.Separator(self.tab_tests, orient="horizontal").pack(fill="x", expand=True, padx=20, pady=15)
+        ttk.Separator(self.tab_tests, orient="horizontal").pack(fill="x", expand=True, padx=15, pady=10)
 
         ttk.Label(self.tab_tests, text="Upcoming Exams Priority List", style="SubHeader.TLabel").pack(pady=5)
 
         self.lst_exams = tk.Listbox(
-            self.tab_tests, width=90, height=5, font=self.font_body, 
+            self.tab_tests, width=90, height=4, font=self.font_body, 
             bg="#FFFFFF", fg=self.COLOR_PRIMARY, selectbackground=self.COLOR_ACCENT, selectforeground=self.COLOR_PRIMARY, relief="solid", bd=1
         )
-        self.lst_exams.pack(pady=8)
+        self.lst_exams.pack(pady=5)
         self.lst_exams.bind("<<ListboxSelect>>", self.on_test_select)
 
         btn_frame = ttk.Frame(self.tab_tests, style="Card.TFrame")
         btn_frame.pack(pady=5)
         ttk.Button(btn_frame, text="Delete Selected Test", style="Accent.TButton", command=self.delete_selected_test).pack()
 
-        # Full-width separator
-        ttk.Separator(self.tab_tests, orient="horizontal").pack(fill="x", expand=True, padx=20, pady=15)
+        ttk.Separator(self.tab_tests, orient="horizontal").pack(fill="x", expand=True, padx=15, pady=10)
 
         self.frame_topics = ttk.LabelFrame(self.tab_tests, text=" Topic Completion Tracker ")
-        self.frame_topics.pack(fill="x", padx=20, pady=10)
+        self.frame_topics.pack(fill="x", padx=20, pady=5)
 
     def update_diff_label(self, val):
         self.lbl_diff_val.config(text=str(int(float(val))))
@@ -235,7 +249,7 @@ class IBPlannerApp:
                 variable=var,
                 command=lambda t=test, top=topic: self.toggle_topic_status(t, top)
             )
-            chk.pack(anchor="w", padx=15, pady=4)
+            chk.pack(anchor="w", padx=15, pady=3)
 
     def toggle_topic_status(self, test, topic):
         test.toggle_topic(topic)
@@ -244,10 +258,10 @@ class IBPlannerApp:
 
     # --- TAB 3: AVAILABILITY ---
     def build_availability_tab(self):
-        ttk.Label(self.tab_availability, text="Block Non-Academic Time", style="Header.TLabel").pack(pady=(20, 10))
+        ttk.Label(self.tab_availability, text="Block Non-Academic Time", style="Header.TLabel").pack(pady=(15, 10))
 
         frame_single = ttk.LabelFrame(self.tab_availability, text=" Single Date Time Block ")
-        frame_single.pack(fill="x", padx=30, pady=10)
+        frame_single.pack(fill="x", padx=25, pady=10)
 
         ttk.Label(frame_single, text="Date (YYYY-MM-DD):").grid(row=0, column=0, sticky="w", padx=8, pady=10)
         self.entry_avail_date = ttk.Entry(frame_single, width=15, font=self.font_body)
@@ -264,7 +278,7 @@ class IBPlannerApp:
         ttk.Button(frame_single, text="Block Date", style="Primary.TButton", command=self.save_activity_input).grid(row=0, column=6, padx=15, pady=10)
 
         frame_recur = ttk.LabelFrame(self.tab_availability, text=" Recurring Weekly Activity ")
-        frame_recur.pack(fill="x", padx=30, pady=15)
+        frame_recur.pack(fill="x", padx=25, pady=15)
 
         ttk.Label(frame_recur, text="Day of Week:").grid(row=0, column=0, sticky="w", padx=8, pady=10)
         self.combo_dow = ttk.Combobox(
@@ -331,23 +345,23 @@ class IBPlannerApp:
             messagebox.showwarning("Error", "Date not found in schedule records.")
 
     # --- TAB 1: DASHBOARD ---
-    def build_dashboard_tab(self):
-        ttk.Label(self.tab_dashboard, text="Study Plan Dashboard", style="Header.TLabel").pack(pady=(20, 5))
+    def build_dashboard_tab(self, body_font):
+        ttk.Label(self.tab_dashboard, text="Study Plan Dashboard", style="Header.TLabel").pack(pady=(15, 5))
 
         btn_frame = ttk.Frame(self.tab_dashboard, style="Card.TFrame")
-        btn_frame.pack(pady=10)
+        btn_frame.pack(pady=5)
 
         ttk.Button(btn_frame, text="Generate Schedule", style="Primary.TButton", command=self.generate_and_refresh).pack()
 
         # Colorful Badge Legend Container
         legend_frame = tk.Frame(self.tab_dashboard, bg=self.BG_MAIN)
-        legend_frame.pack(pady=10)
+        legend_frame.pack(pady=8)
 
-        tk.Label(legend_frame, text="Legend: ", font=("Georgia", 11, "bold"), fg=self.COLOR_PRIMARY, bg=self.BG_MAIN).pack(side="left")
+        tk.Label(legend_frame, text="Legend: ", font=(body_font, 11, "bold"), fg=self.COLOR_PRIMARY, bg=self.BG_MAIN).pack(side="left")
         
-        tk.Label(legend_frame, text=" White = Free ", font=("Georgia", 9, "bold"), bg="#FFFFFF", fg="#000000", relief="solid", bd=1).pack(side="left", padx=4)
-        tk.Label(legend_frame, text=" Pink/Coral = Blocked Activity ", font=("Georgia", 9, "bold"), bg="#FF8989", fg="#FFFFFF", relief="solid", bd=1).pack(side="left", padx=4)
-        tk.Label(legend_frame, text=" Ocean Blue = Study Slot ", font=("Georgia", 9, "bold"), bg="#0079D2", fg="#FFFFFF", relief="solid", bd=1).pack(side="left", padx=4)
+        tk.Label(legend_frame, text=" White = Free ", font=(body_font, 9, "bold"), bg="#FFFFFF", fg="#000000", relief="solid", bd=1).pack(side="left", padx=4)
+        tk.Label(legend_frame, text=" Pink/Coral = Blocked Activity ", font=(body_font, 9, "bold"), bg="#FF8989", fg="#FFFFFF", relief="solid", bd=1).pack(side="left", padx=4)
+        tk.Label(legend_frame, text=" Ocean Blue = Study Slot ", font=(body_font, 9, "bold"), bg="#0079D2", fg="#FFFFFF", relief="solid", bd=1).pack(side="left", padx=4)
 
         self.canvas = tk.Canvas(self.tab_dashboard, bg="#FFFFFF", highlightthickness=0)
         self.scrollbar = ttk.Scrollbar(self.tab_dashboard, orient="vertical", command=self.canvas.yview)
@@ -361,7 +375,7 @@ class IBPlannerApp:
         self.canvas.create_window((0, 0), window=self.frame_calendar, anchor="nw")
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
-        self.canvas.pack(side="left", fill="both", expand=True, padx=20, pady=10)
+        self.canvas.pack(side="left", fill="both", expand=True, padx=15, pady=10)
         self.scrollbar.pack(side="right", fill="y", pady=10)
 
     def generate_and_refresh(self):
@@ -382,7 +396,7 @@ class IBPlannerApp:
         # Header Row
         ttk.Label(self.frame_calendar, text="Date / Hour", font=self.font_bold).grid(row=0, column=0, padx=6, pady=6)
         for h in range(16):
-            ttk.Label(self.frame_calendar, text=f"{h+7:02d}:00", font=("Georgia", 9, "bold")).grid(row=0, column=h+1, padx=3, pady=6)
+            ttk.Label(self.frame_calendar, text=f"{h+7:02d}:00", font=self.font_bold).grid(row=0, column=h+1, padx=3, pady=6)
 
         # Calendar Matrix Output
         for r_idx, date_str in enumerate(dates):
@@ -408,7 +422,7 @@ class IBPlannerApp:
                     bg=color,
                     fg=text_color,
                     width=8,
-                    font=("Georgia", 9, "bold" if state != 0 else "normal"),
+                    font=self.font_bold if state != 0 else self.font_body,
                     relief="solid",
                     bd=1
                 )
