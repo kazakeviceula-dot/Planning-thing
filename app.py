@@ -5,8 +5,8 @@ from tkinter import ttk, messagebox
 from datetime import datetime
 from models import StudyManager, Test
 
-# Load custom font file into Windows memory session
-FONT_PATH = "Grozan-Demo-Regular.ttf"  # <--- Ensure this matches your exact filename
+# Load Babell Bold font file into Windows memory session
+FONT_PATH = "Babell Bold.ttf"  
 if os.path.exists(FONT_PATH):
     ctypes.windll.gdi32.AddFontResourceExW(FONT_PATH, 0x10, 0)
 
@@ -25,9 +25,9 @@ class IBPlannerApp:
 
         self.root.configure(bg=self.BG_MAIN)
 
-        # Typography with Grozan applied to all main headers and titles
-        self.font_title = ("Grozan", 26, "bold")
-        self.font_header = ("Grozan", 16, "bold")
+        # Typography with Babell Bold applied to main headers and titles
+        self.font_title = ("Babell Bold", 26)
+        self.font_header = ("Babell Bold", 16)
         self.font_body = ("Georgia", 10)
         self.font_bold = ("Georgia", 10, "bold")
 
@@ -65,7 +65,7 @@ class IBPlannerApp:
         style.configure("Card.TFrame", background=self.BG_CARD)
 
         style.configure("TNotebook", background=self.BG_MAIN, borderwidth=0)
-        style.configure("TNotebook.Tab", font=("Grozan", 12, "bold"), padding=[16, 8], background=self.BG_MAIN, foreground=self.COLOR_PRIMARY)
+        style.configure("TNotebook.Tab", font=("Babell Bold", 12), padding=[16, 8], background=self.BG_MAIN, foreground=self.COLOR_PRIMARY)
         style.map("TNotebook.Tab", background=[("selected", self.BG_CARD)], foreground=[("selected", self.COLOR_PRIMARY)])
 
         style.configure("Header.TLabel", font=self.font_title, background=self.BG_CARD, foreground=self.COLOR_PRIMARY)
@@ -306,7 +306,7 @@ class IBPlannerApp:
         legend_frame = tk.Frame(self.tab_dashboard, bg=self.BG_MAIN)
         legend_frame.pack(pady=10)
 
-        tk.Label(legend_frame, text="Legend: ", font=("Grozan", 12, "bold"), fg=self.COLOR_PRIMARY, bg=self.BG_MAIN).pack(side="left")
+        tk.Label(legend_frame, text="Legend: ", font=("Babell Bold", 12), fg=self.COLOR_PRIMARY, bg=self.BG_MAIN).pack(side="left")
         tk.Label(legend_frame, text=" White = Free ", font=("Georgia", 10, "bold"), bg="#FFFFFF", fg="#000000", bd=1, relief="solid").pack(side="left", padx=5)
         tk.Label(legend_frame, text=" Pink/Coral = Blocked Activity ", font=("Georgia", 10, "bold"), bg="#FF8989", fg="#FFFFFF", bd=1, relief="solid").pack(side="left", padx=5)
         tk.Label(legend_frame, text=" Ocean Blue = Study Slot ", font=("Georgia", 10, "bold"), bg="#0079D2", fg="#FFFFFF", bd=1, relief="solid").pack(side="left", padx=5)
