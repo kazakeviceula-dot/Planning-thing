@@ -16,9 +16,9 @@ class IBPlannerApp:
         self.root.title("Ula's IB Workload Manager")
         self.root.geometry("1180x880")
 
-        # Palette
-        self.BG_MAIN = "#B5C2FC"       
-        self.BG_CARD = "#B5C2FC"       
+        # Palette (Darker shade applied)
+        self.BG_MAIN = "#8DA3F7"       
+        self.BG_CARD = "#9FB1FB"       
         self.COLOR_PRIMARY = "#0045B2" 
         self.COLOR_ACCENT = "#FCFCD4"  
         self.COLOR_TEXT = "#000000"
