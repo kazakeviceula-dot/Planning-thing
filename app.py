@@ -307,9 +307,9 @@ class IBPlannerApp:
         legend_frame.pack(pady=10)
 
         tk.Label(legend_frame, text="Legend: ", font=("Babell Bold", 12), fg=self.COLOR_PRIMARY, bg=self.BG_MAIN).pack(side="left")
-        tk.Label(legend_frame, text=" White = Free ", font=("Georgia", 10, "bold"), bg="#FFFFFF", fg="#000000", bd=1, relief="solid").pack(side="left", padx=5)
-        tk.Label(legend_frame, text=" Pink/Coral = Blocked Activity ", font=("Georgia", 10, "bold"), bg="#FF8989", fg="#FFFFFF", bd=1, relief="solid").pack(side="left", padx=5)
-        tk.Label(legend_frame, text=" Ocean Blue = Study Slot ", font=("Georgia", 10, "bold"), bg="#0079D2", fg="#FFFFFF", bd=1, relief="solid").pack(side="left", padx=5)
+        tk.Label(legend_frame, text=" Free ", font=("Georgia", 10, "bold"), bg="#FFFFFF", fg="#000000", bd=1, relief="solid").pack(side="left", padx=5)
+        tk.Label(legend_frame, text=" Blocked Activity ", font=("Georgia", 10, "bold"), bg="#FF8989", fg="#FFFFFF", bd=1, relief="solid").pack(side="left", padx=5)
+        tk.Label(legend_frame, text=" Study Slot ", font=("Georgia", 10, "bold"), bg="#0079D2", fg="#FFFFFF", bd=1, relief="solid").pack(side="left", padx=5)
 
         self.canvas = tk.Canvas(self.tab_dashboard, bg="#FFFFFF")
         self.scrollbar = ttk.Scrollbar(self.tab_dashboard, orient="vertical", command=self.canvas.yview)
