@@ -48,8 +48,8 @@ class Test:
 
 class StudyManager:
     def __init__(self):
-        self.all_tests = []
-        self.days_dict = {}
+        self.all_tests = []# list of Test objects
+        self.days_dict = {}# {"2026-11-03": [16 slots], ...}
 
     def add_test(self, test_obj: Test):
         self.all_tests.append(test_obj)
