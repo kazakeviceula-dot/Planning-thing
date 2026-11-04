@@ -6,7 +6,7 @@ from datetime import datetime
 from models import StudyManager, Test
 
 # Load Babell Bold font file into Windows memory session
-FONT_PATH = "Babell Bold.ttf"  
+FONT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Babell Bold.ttf")
 if os.path.exists(FONT_PATH):
     ctypes.windll.gdi32.AddFontResourceExW(FONT_PATH, 0x10, 0)
 
@@ -35,8 +35,8 @@ class IBPlannerApp:
         self.manager = StudyManager()
         try:
             self.manager.load_from_json()
-        except:
-            pass
+        except Exception as e:
+            print("Load failed:", e)
 
         #Ensure a 14-day minimum data range is created in memory 
         self.manager.ensure_date_range_for_tests(min_days=14)
@@ -112,12 +112,15 @@ class IBPlannerApp:
         slider_frame = ttk.Frame(form, style="Card.TFrame")
         slider_frame.grid(row=3, column=1, sticky="ew", pady=8, padx=5)
 
-        self.scale_diff = ttk.Scale(slider_frame, from_=1, to=10, command=self.update_diff_label)
+        # The callback is attached AFTER the label exists, otherwise .set(5) fires it too early
+        self.scale_diff = ttk.Scale(slider_frame, from_=1, to=10)
         self.scale_diff.set(5)
         self.scale_diff.pack(side="left", fill="x", expand=True, padx=(0, 10))
 
         self.lbl_diff_val = ttk.Label(slider_frame, text="5", font=self.font_bold, width=3)
         self.lbl_diff_val.pack(side="right")
+
+        self.scale_diff.configure(command=self.update_diff_label)
 
         #Save button, which first checks if the user's input is valid, and then creates a new data object (e.g. Test) from that input 
         ttk.Button(self.tab_tests, text="Add Test", style="Primary.TButton", command=self.save_test_input).pack(pady=12)
@@ -178,8 +181,9 @@ class IBPlannerApp:
         if not selected:
             return
 
-        idx = selected[0]
-        self.manager.remove_test(idx)
+        # The listbox is sorted by date, so look up the test in the same sorted order
+        sorted_tests = sorted(self.manager.all_tests, key=lambda t: t.due_date)
+        self.manager.all_tests.remove(sorted_tests[selected[0]])
         self.manager.save_to_json()
         self.refresh_exam_list()
 
