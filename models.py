@@ -82,7 +82,7 @@ class StudyManager:
             return
 
         today = datetime.now().date()
-        days_ahead = (target_weekday - today.weekday()) % 7
+        days_ahead = (target_weekday - today.weekday()) % 7 
         first_date = today + timedelta(days=days_ahead)
 
         for week in range(weeks_ahead):
@@ -119,9 +119,9 @@ class StudyManager:
         for test in sorted_tests:
             needed_slots = test.hours_required
 
-            for date_str in sorted(self.days_dict.keys()):
+            for date_str in sorted(self.days_dict.keys()): #chronological 
                 slot_date = datetime.strptime(date_str, "%Y-%m-%d").date()
-                if slot_date >= test.due_date:
+                if slot_date >= test.due_date: # never study on/after the test day
                     continue
 
                 slots = self.days_dict[date_str]
