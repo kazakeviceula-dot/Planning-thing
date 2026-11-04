@@ -2,6 +2,10 @@ import json
 import os
 from datetime import datetime, timedelta
 
+# Always save/load next to this script, no matter where the program is launched from
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+SAVE_FILE = os.path.join(BASE_DIR, "schedule.json")
+
 class Test:
     def __init__(self, subject: str, due_date: str, topics: list, difficulty_weight: int = 5, completed_topics: list = None):
         self.subject = subject
@@ -137,7 +141,7 @@ class StudyManager:
 
         return overflow_warnings
 
-    def save_to_json(self, filepath: str = "schedule.json"):
+    def save_to_json(self, filepath: str = SAVE_FILE):
         data = {
             "all_tests": [t.to_dict() for t in self.all_tests],
             "days_dict": self.days_dict
@@ -145,7 +149,7 @@ class StudyManager:
         with open(filepath, "w") as f:
             json.dump(data, f, indent=4)
 
-    def load_from_json(self, filepath: str = "schedule.json"):
+    def load_from_json(self, filepath: str = SAVE_FILE):
         if os.path.exists(filepath):
             with open(filepath, "r") as f:
                 data = json.load(f)
