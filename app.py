@@ -153,7 +153,9 @@ class IBPlannerApp:
     def update_diff_label(self, val):
         self.lbl_diff_val.config(text=str(int(float(val))))
 
+
     # Validates typing, saves the new exam, clears form, and calls refresh_exam_list
+    # (ignoree this comment)
     def save_test_input(self):
         sub = self.entry_subject.get().strip()
         date_str = self.entry_date.get().strip()
