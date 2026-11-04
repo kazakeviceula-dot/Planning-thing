@@ -155,6 +155,7 @@ class IBPlannerApp:
 
 
     # Validates typing, saves the new exam, clears form, and calls refresh_exam_list
+    # Comments!
     def save_test_input(self):
         sub = self.entry_subject.get().strip()
         date_str = self.entry_date.get().strip()
