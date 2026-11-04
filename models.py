@@ -1,25 +1,31 @@
-import json
-import os
-from datetime import datetime, timedelta
+import json #used to save and load the schedule as a .json file
+import os # used to check that the save file exists before loading it 
+from datetime import datetime, timedelta # datetime converts text to dates, timedelta adds days/weeks to a date
 
 # Always save/load next to this script, no matter where the program is launched from
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SAVE_FILE = os.path.join(BASE_DIR, "schedule.json")
 
+
+# Test class: holds all the information about one singular assesment (subject, due date, topics, workload)
 class Test:
     def __init__(self, subject: str, due_date: str, topics: list, difficulty_weight: int = 5, completed_topics: list = None):
         self.subject = subject
-        self.due_date_str = due_date
-        self.due_date = datetime.strptime(due_date, "%Y-%m-%d").date()
+        self.due_date_str = due_date # text version (YYY-MM-DD), used for saving to JSOn and showing on screen 
+        self.due_date = datetime.strptime(due_date, "%Y-%m-%d").date() # real date object, used for sorting and comparing, triggers ValueError if format is wrong
         self.topics = topics
+        # if no list is given, create a new empty one (avoid all Test objects sharing the same list)
         self.completed_topics = completed_topics if completed_topics is not None else []
-        self.difficulty_weight = int(difficulty_weight)
-        self.update_hours_required()
+        self.difficulty_weight = int(difficulty_weight) # forces a whole number (1 to 10)
+        self.update_hours_required() # work out the study hours straight away 
 
+    # Amount hours dedicated based on workload: uncompleted topics x hours per topic
+    # Hours per topcic : difficulty // 3 (whole-number division), never less than 1
     def update_hours_required(self):
-        remaining_topics = [t for t in self.topics if t not in self.completed_topics]
+        remaining_topics = [t for t in self.topics if t not in self.completed_topics] # keep only topics that are not yet ticked off 
         self.hours_required = len(remaining_topics) * max(1, self.difficulty_weight // 3)
 
+    #Tick/untick a topic: if it is already completed remove it, otherwise add it, recalculate the hours accordingly
     def toggle_topic(self, topic: str):
         if topic in self.completed_topics:
             self.completed_topics.remove(topic)
@@ -27,9 +33,12 @@ class Test:
             self.completed_topics.append(topic)
         self.update_hours_required()
 
+    # Number of days left until the test 
     def days_until(self) -> int:
         return (self.due_date - datetime.now().date()).days
 
+    # Convers the object into a plain dictionary so json can save it 
+    # hours_required is not saved it is recaluclated when the test is loaded 
     def to_dict(self):
         return {
             "subject": self.subject,
@@ -39,6 +48,8 @@ class Test:
             "difficulty_weight": self.difficulty_weight
         }
 
+    # Rebuilds a Test object from a saved dictionary 
+    # .get(key, default) uses a given default value (5) if the key is missing from the file to prevent crashig
     @staticmethod
     def from_dict(data):
         return Test(
