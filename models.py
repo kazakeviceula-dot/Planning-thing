@@ -60,29 +60,34 @@ class Test:
             data.get("completed_topics", [])
         )
 
-
+# StudyManager works as a controller. Stores all tests and the calendar, as well as builds the study plan
 class StudyManager:
     def __init__(self):
         self.all_tests = []# list of Test objects
         self.days_dict = {}# {"2026-11-03": [16 slots], ...}
+        # Slot index = hour - 7, so index 0 is 07:00 and  index 15 is 22:00 (last hours ends at 23:00, after time study time is blocked)
 
     def add_test(self, test_obj: Test):
         self.all_tests.append(test_obj)
 
+    #Removes a test at a given position in the list 
     def remove_test(self, index: int):
         if 0 <= index < len(self.all_tests):
             self.all_tests.pop(index)
 
+    # Creates an empty day (16 slots), only if that date does not exist yet
     def init_day(self, date_str: str):
         if date_str not in self.days_dict:
             self.days_dict[date_str] = [0] * 16
 
+    #Creates empty days starting from today 
     def generate_date_range(self, days_ahead: int = 14):
         today = datetime.now().date()
         for i in range(days_ahead):
             d_str = (today + timedelta(days=i)).strftime("%Y-%m-%d")
             self.init_day(d_str)
 
+    # Blocks time for a non-academic activity on one day 
     def add_activity(self, date_str: str, start_hour: int, end_hour: int):
         self.init_day(date_str)
         start_idx = max(0, start_hour - 7)
@@ -90,6 +95,7 @@ class StudyManager:
         for i in range(start_idx, end_idx):
             self.days_dict[date_str][i] = 1
 
+    # Blocks the same time on a weekday for several weeks ahead
     def add_recurring_activity(self, day_of_week: str, start_hour: int, end_hour: int, weeks_ahead: int = 4):
         days_map = {"Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6}
         target_weekday = days_map.get(day_of_week)
@@ -105,6 +111,7 @@ class StudyManager:
             date_str = current_date.strftime("%Y-%m-%d")
             self.add_activity(date_str, start_hour, end_hour)
 
+    # Makes sure that calendar covers today up to the last due date (minimum 14 days), making the calendar dynamic
     def ensure_date_range_for_tests(self, min_days=14):
         today = datetime.now().date()
         max_date = today + timedelta(days=min_days)
@@ -120,20 +127,27 @@ class StudyManager:
                 self.days_dict[d_str] = [0] * 16
             curr += timedelta(days=1)
 
+    # Resets one day to all free
     def clear_day_activities(self, date_str: str):
         if date_str in self.days_dict:
             self.days_dict[date_str] = [0] * 16
 
+    # Algorithm which fills free slots with study hours, most urgent tests first
+    # Returns a list of overflow warnings 
     def distribute_study(self) -> list:
+        # Erases old study slots (a slot that has a subject name), keeps blocked slots
+        # Prevents duplicates when user presses regenerate plan
         for d_str in self.days_dict:
             self.days_dict[d_str] = [0 if slot not in (0, 1) else slot for slot in self.days_dict[d_str]]
 
+        # Sorts tests b due date so the nearest test is scheduled first 
         sorted_tests = sorted(self.all_tests, key=lambda t: t.due_date)
         overflow_warnings = []
 
         for test in sorted_tests:
             needed_slots = test.hours_required
 
+            # Goes through the days in the date order (YYYY-MM-DD)
             for date_str in sorted(self.days_dict.keys()): #chronological 
                 slot_date = datetime.strptime(date_str, "%Y-%m-%d").date()
                 if slot_date >= test.due_date: # never study on/after the test day
@@ -144,7 +158,8 @@ class StudyManager:
                     if slots[idx] == 0 and needed_slots > 0:
                         slots[idx] = test.subject
                         needed_slots -= 1
-
+           
+            # If hours are left over there was not enough free time, so a warning is triggered 
             if needed_slots > 0:
                 overflow_warnings.append(
                     f"Schedule Overflow: '{test.subject}' needs {needed_slots} more slot(s) before {test.due_date_str}!"
@@ -152,18 +167,20 @@ class StudyManager:
 
         return overflow_warnings
 
+    # Saves all tests and the whole calendar to schedule.json
     def save_to_json(self, filepath: str = SAVE_FILE):
         data = {
-            "all_tests": [t.to_dict() for t in self.all_tests],
+            "all_tests": [t.to_dict() for t in self.all_tests], # each Test becomes a dictionary
             "days_dict": self.days_dict
         }
-        with open(filepath, "w") as f:
-            json.dump(data, f, indent=4)
+        with open(filepath, "w") as f: # write
+            json.dump(data, f, indent=4) # makes the file readable
 
+    # Loads saved data when the program starts 
     def load_from_json(self, filepath: str = SAVE_FILE):
         if os.path.exists(filepath):
-            with open(filepath, "r") as f:
+            with open(filepath, "r") as f: # read
                 data = json.load(f)
-                self.all_tests = [Test.from_dict(t) for t in data.get("all_tests", [])]
+                self.all_tests = [Test.from_dict(t) for t in data.get("all_tests", [])] # rebuild Test objects
                 self.days_dict = data.get("days_dict", {})
-        self.ensure_date_range_for_tests()
+        self.ensure_date_range_for_tests() # runs without a file, so the first launch still contains 14 days
