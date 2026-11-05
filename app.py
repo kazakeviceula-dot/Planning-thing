@@ -15,10 +15,10 @@ if os.path.exists(FONT_PATH):
     ctypes.windll.gdi32.AddFontResourceExW(FONT_PATH, 0x10, 0)
 
 class IBPlannerApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Ula's IB Workload Manager")
-        self.root.geometry("1180x880")
+    def __init__(self, root):  # 4th step, runs and the root is the windown from the 2nd step
+        self.root = root # 5th step, save the windown so the class can use it  
+        self.root.title("Ula's IB Workload Manager")  # 6th step, set the titel bar text
+        self.root.geometry("1180x880") # 7th step window size
 
         # Palette, including darker pastel blue/indigo theme
         self.BG_MAIN = "#8DA3F7"        
@@ -414,7 +414,7 @@ class IBPlannerApp:
         self.frame_calendar.update_idletasks()
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = IBPlannerApp(root)
-    root.mainloop()
+if __name__ == "__main__": # 1st step Python starts here when user runs app.py
+    root = tk.Tk() # 2nd step, creates the windown, stored in the variable root
+    app = IBPlannerApp(root) # 3rd step, creates the app, giving it the windown
+    root.mainloop() # 8th step, shows the windown and keeps it open
