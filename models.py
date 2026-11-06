@@ -149,7 +149,7 @@ class StudyManager:
 
             # Goes through the days in the date order (YYYY-MM-DD)
             for date_str in sorted(self.days_dict.keys()): #chronological 
-                if needed_slots == 0:  # all hours for this test are placed, stop scanning the remaining dates
+                if needed_slots == 0:  # if all hours for this test are placed, stop scanning the remaining dates
                     break               
 
                 slot_date = datetime.strptime(date_str, "%Y-%m-%d").date()
