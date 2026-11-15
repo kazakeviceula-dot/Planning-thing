@@ -166,7 +166,7 @@ class IBPlannerApp:
             messagebox.showwarning("Input Error", "Please fill in all test fields.")
             return
 
-        try: #Date Error
+        try: 
             new_test = Test(sub, date_str, topics, difficulty_weight=diff)
 
             if new_test.due_date <= datetime.now().date():
