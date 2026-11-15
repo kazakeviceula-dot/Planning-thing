@@ -182,8 +182,13 @@ class StudyManager:
     # Loads saved data when the program starts 
     def load_from_json(self, filepath: str = SAVE_FILE):
         if os.path.exists(filepath):
-            with open(filepath, "r") as f: # read
+            with open(filepath, "r") as f:
                 data = json.load(f)
-                self.all_tests = [Test.from_dict(t) for t in data.get("all_tests", [])] # rebuild Test objects
+                self.all_tests = [Test.from_dict(t) for t in data.get("all_tests", [])]
                 self.days_dict = data.get("days_dict", {})
-        self.ensure_date_range_for_tests() # runs without a file, so the first launch still contains 14 days
+
+        # Drop days that are already in the past
+        today_str = datetime.now().date().strftime("%Y-%m-%d")
+        self.days_dict = {d: s for d, s in self.days_dict.items() if d >= today_str}
+
+        self.ensure_date_range_for_tests()
